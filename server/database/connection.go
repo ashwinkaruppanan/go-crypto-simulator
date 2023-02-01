@@ -18,7 +18,7 @@ func DBInstance() *mongo.Client {
 		log.Panic(err)
 	}
 
-	MongoURL := os.Getenv("MONGO")
+	MongoURL := os.Getenv("MONGODB_URL")
 
 	client, clientErr := mongo.NewClient(options.Client().ApplyURI(MongoURL))
 	if clientErr != nil {

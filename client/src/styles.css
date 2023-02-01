@@ -1,0 +1,102 @@
+* {
+    margin: 0px;   
+    font-family: 'Ubuntu', sans-serif; 
+}
+
+body {
+    background-color: #393E46;
+}
+
+/* ...... bg-animation ........ */
+
+/* ***** Header ******** */
+
+#login {
+    color: #ffffff;
+    border-color: #00ADB5;
+}
+
+#register {
+    color: white;
+    background-color: #00ADB5;
+}
+
+.logo img {
+    width: 120px;
+    height: 40px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    padding:20px 60px;
+    background-color: #222831;
+}
+
+.header #register {
+    margin-left: 12px;
+}
+
+
+/* .......... Main ................. */
+
+.main{
+    display: flex;
+    justify-content: space-between;
+}
+
+.main .right {
+    width:100%;
+    display: inline-block;
+
+}
+
+.main .left {
+    width: 100%;
+    color: #EEEEEE;
+    margin: 130px 0 0 0 ;
+    padding: 40px;
+}
+
+.main img{
+    width: 60%;
+    display: inline-block;
+    justify-content: center;
+    position: relative;
+    top: 80px;
+    left: 140px;
+}
+
+.main .left h2 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    padding: 30px 0 0 0 ;
+}
+
+
+/* ..... footrer ..... */
+
+.footer {
+    height: 70px;
+    width: 100%;
+    background-color: #222831;
+    position:absolute;
+    bottom: 0;
+}
+
+.footer p {
+    color:#EEEEEE;
+    text-align: center;
+    position: relative;
+    top: 30px;
+}
+
+.footer p:hover {
+    color: #00ADB5;
+}
+
+/* ....... login .......... */
+
+.logingb {
+    background-color: #393E46;
+}
