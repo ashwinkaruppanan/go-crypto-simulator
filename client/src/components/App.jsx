@@ -1,17 +1,17 @@
 import Footer from "./Layout/Footer";
 import Header from "./Layout/Header";
 import Main from "./Layout/Main";
-import SignIn from "./Login/LogIn";
-import SignUp from "./Signup/SignUp";
+import LoginPage from '../components/Login/LoginPage';
+import SignUpForm from "./Signup/SignUp";
+
 
 function App() {
     return <>
-    <Header />
+    {/* <Header />
     <Main />
-    <Footer />
-
-    {/* <SignIn/ >
-    <SignUp/ > */}
+    <Footer /> */}
+    <LoginPage />
+    <SignUpForm />
     </>
 }
 
