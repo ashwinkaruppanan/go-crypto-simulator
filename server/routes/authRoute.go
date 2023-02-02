@@ -5,6 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func UserRoute(router *gin.Engine) {
-	router.GET("/api/v1/balance", controllers.GetBalance())
+func AuthRoute(router *gin.Engine) {
+	router.POST("/api/v1/login/", controllers.Login())
 }

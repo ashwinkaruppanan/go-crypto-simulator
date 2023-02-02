@@ -12,6 +12,7 @@ import (
 func main() {
 	router := gin.Default()
 
+	routes.AuthRoute(router)
 	routes.UserRoute(router)
 
 	if err := godotenv.Load(".env"); err != nil {
