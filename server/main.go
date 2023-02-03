@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"ashwin.com/go-crypto-simulator/helper"
 	"ashwin.com/go-crypto-simulator/routes"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -14,6 +15,7 @@ func main() {
 
 	routes.AuthRoute(router)
 	routes.UserRoute(router)
+	go helper.Timer()
 
 	if err := godotenv.Load(".env"); err != nil {
 		log.Panic(err)

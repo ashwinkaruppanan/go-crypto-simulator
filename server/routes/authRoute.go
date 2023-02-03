@@ -7,4 +7,6 @@ import (
 
 func AuthRoute(router *gin.Engine) {
 	router.POST("/api/v1/login/", controllers.Login())
+	router.POST("/api/v1/signup/", controllers.Signup())
+	router.DELETE("/api/v1/logout/", controllers.Logout())
 }
