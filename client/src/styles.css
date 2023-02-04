@@ -1,102 +1,101 @@
 * {
-    margin: 0px;   
-    font-family: 'Ubuntu', sans-serif; 
+    box-sizing: border-box;
 }
 
 body {
+    margin: 0;
     background-color: #393E46;
 }
 
-/* ...... bg-animation ........ */
+/* header */
+.navbar {
+    height: 8vh;
+    width: 100vw;
+    background-color: #222831;
+    padding: 0 7vw;
+}   
 
-/* ***** Header ******** */
+.navbar .logo img {
+    height: 4vh;
+}
 
-#login {
-    color: #ffffff;
+ .buttons button{
+    margin: 0 0.4rem;
+    
+}
+
+.buttons .login {
+    color: #00ADB5;
     border-color: #00ADB5;
 }
 
-#register {
-    color: white;
+.buttons .login:hover {
+    border-color: #00ADB5;
+}
+
+.buttons .register {
+    background-color: #00ADB5;
+    border-color: #00ADB5;
+}
+.buttons .register:hover {
     background-color: #00ADB5;
 }
 
-.logo img {
-    width: 120px;
-    height: 40px;
-}
-
-.header {
-    display: flex;
-    justify-content: space-between;
-    padding:20px 60px;
-    background-color: #222831;
-}
-
-.header #register {
-    margin-left: 12px;
-}
-
-
-/* .......... Main ................. */
-
-.main{
-    display: flex;
-    justify-content: space-between;
-}
-
-.main .right {
-    width:100%;
-    display: inline-block;
-
-}
-
-.main .left {
-    width: 100%;
-    color: #EEEEEE;
-    margin: 130px 0 0 0 ;
-    padding: 40px;
-}
-
-.main img{
-    width: 60%;
-    display: inline-block;
-    justify-content: center;
-    position: relative;
-    top: 80px;
-    left: 140px;
-}
-
-.main .left h2 {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    padding: 30px 0 0 0 ;
-}
-
-
-/* ..... footrer ..... */
+/* footer */
 
 .footer {
-    height: 70px;
-    width: 100%;
+    display: flex;
+    justify-content: space-evenly;
+    align-items:center;
+    height: 5vh;
+    width: 100vw;
     background-color: #222831;
     position:absolute;
     bottom: 0;
+    
 }
 
 .footer p {
     color:#EEEEEE;
-    text-align: center;
-    position: relative;
-    top: 30px;
+    text-align: center;    
+    margin: 0;
 }
 
 .footer p:hover {
-    color: #00ADB5;
+    color: #74f8ff;
 }
 
-/* ....... login .......... */
+/* main */
 
-.logingb {
-    background-color: #393E46;
+.main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+    color: #eee;
+    height: 82vh;
+    text-align: center;
+    margin: 0 4vw;
+}
+
+.main .left{
+    margin: 0 auto;
+}
+
+.main .right {
+    margin: 0 auto;
+}
+
+.main .right h2 {
+    font-size: 3rem;
+}
+
+
+main .register {
+    background-color: #00ADB5;
+    border-color: #00ADB5;
+    font-size: 1.8rem;
+}
+main .register:hover {
+    background-color: #00ADB5;
 }
