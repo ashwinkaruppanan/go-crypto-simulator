@@ -15,27 +15,42 @@ type Users struct {
 	UpdatedAt int64              `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
 }
 
-type OpenOrders struct {
-	ID     primitive.ObjectID `bson:"_id"`
-	UserID primitive.ObjectID `json:"user_id" bson:"user_id,omitempty"`
-	Date   int64              `json:"date" bson:"date,omitempty"`
-	Pair   string             `json:"pair" bson:"pair,omitempty"`
-	Type   string             `json:"type" bson:"type,omitempty"`
-	Side   string             `json:"side" bson:"side,omitempty"`
-	Price  float32            `json:"price" bson:"price,omitempty"`
-	Amount float32            `json:"amount" bson:"amount,omitempty"`
-	Total  float32            `json:"total" bson:"total,omitempty"`
-}
+// type OpenOrders struct {
+// 	ID     primitive.ObjectID `bson:"_id"`
+// 	UserID primitive.ObjectID `json:"user_id" bson:"user_id,omitempty"`
+// 	Date   int64              `json:"date" bson:"date,omitempty"`
+// 	Pair   string             `json:"pair" bson:"pair,omitempty"`
+// 	Type   string             `json:"type" bson:"type,omitempty"`
+// 	Side   string             `json:"side" bson:"side,omitempty"`
+// 	Price  float32            `json:"price" bson:"price,omitempty"`
+// 	Amount float32            `json:"amount" bson:"amount,omitempty"`
+// 	Total  float32            `json:"total" bson:"total,omitempty"`
+// }
 
-type TradeHistory struct {
-	ID     primitive.ObjectID `bson:"_id"`
-	UserID primitive.ObjectID `json:"user_id" bson:"user_id,omitempty"`
-	Date   int64              `json:"date" bson:"date,omitempty"`
-	Pair   string             `json:"pair" bson:"pair,omitempty"`
-	Type   string             `json:"type" bson:"type,omitempty"`
-	Side   string             `json:"side" bson:"side,omitempty"`
-	Price  float32            `json:"price" bson:"price,omitempty"`
-	Amount float32            `json:"amount" bson:"amount,omitempty"`
-	Total  float32            `json:"total" bson:"total,omitempty"`
-	Fee    float32            `json:"fee" bson:"fee,omitempty"`
+// type TradeHistory struct {
+// 	ID     primitive.ObjectID `bson:"_id"`
+// 	UserID primitive.ObjectID `json:"user_id" bson:"user_id,omitempty"`
+// 	Date   int64              `json:"date" bson:"date,omitempty"`
+// 	Pair   string             `json:"pair" bson:"pair,omitempty"`
+// 	Type   string             `json:"type" bson:"type,omitempty"`
+// 	Side   string             `json:"side" bson:"side,omitempty"`
+// 	Price  float32            `json:"price" bson:"price,omitempty"`
+// 	Amount float32            `json:"amount" bson:"amount,omitempty"`
+// 	Total  float32            `json:"total" bson:"total,omitempty"`
+// 	Fee    float32            `json:"fee" bson:"fee,omitempty"`
+// }
+
+type Orders struct {
+	OrderID    primitive.ObjectID `bson:"_id"`
+	UserID     primitive.ObjectID `json:"user_id" bson:"user_id,omitempty"`
+	Status     string             `json:"status" bson:"status,omitempty"`
+	Pair       string             `json:"pair" bson:"pair,omitempty"`
+	Type       string             `json:"type" bson:"type,omitempty"`
+	Side       string             `json:"side" bson:"side,omitempty"`
+	Price      float32            `json:"price" bson:"price,omitempty"`
+	Amount     float32            `json:"amount" bson:"amount,omitempty"`
+	Total      float32            `json:"total" bson:"total,omitempty"`
+	Fee        float32            `json:"fee" bson:"fee,omitempty"`
+	OpenedAt   int64              `json:"opened_at" bson:"opened_at,omitempty"`
+	ExecutedAt int64              `json:"executed_at" bson:"executed_at,omitempty"`
 }

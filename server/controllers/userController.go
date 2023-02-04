@@ -17,8 +17,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var openOrdersCollection *mongo.Collection = database.OpenCollection(database.Client, "open-orders")
-var tradeHistoryCollection *mongo.Collection = database.OpenCollection(database.Client, "trade-history")
+var ordersCollection *mongo.Collection = database.OpenCollection(database.Client, "orders")
 
 func GetBalance() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -61,9 +60,9 @@ func OpenOrders() gin.HandlerFunc {
 		}
 
 		//getting user's open orders from db collection
-		var dbDetails []*models.OpenOrders
+		var dbDetails []*models.Orders
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		cursor, dbErr := openOrdersCollection.Find(ctx, bson.M{"user_id": userID})
+		cursor, dbErr := ordersCollection.Find(ctx, bson.M{"user_id": userID, "status": "OPEN"})
 		defer cancel()
 		if dbErr != nil {
 			log.Panic(dbErr)
@@ -89,15 +88,14 @@ func TradeHistory() gin.HandlerFunc {
 		}
 
 		//getting user's Trade History from db collection
-		var dbDetails []*models.TradeHistory
+		var dbDetails []*models.Orders
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		cursor, dbErr := tradeHistoryCollection.Find(ctx, bson.M{"user_id": userID})
+		cursor, dbErr := ordersCollection.Find(ctx, bson.M{"user_id": userID, "status": "EXECUTED"})
 		defer cancel()
 		if dbErr != nil {
 			log.Panic(dbErr)
 			c.JSON(http.StatusBadRequest, gin.H{"error": dbErr})
 		}
-
 		if err := cursor.All(ctx, &dbDetails); err != nil {
 			log.Panic(err)
 		}
@@ -117,7 +115,7 @@ func LmitBuy() gin.HandlerFunc {
 		}
 
 		var newBuyOrder *Limit = new(Limit)
-		var newOpenOrder *models.OpenOrders = new(models.OpenOrders)
+		var newOpenOrder *models.Orders = new(models.Orders)
 		var dbBalance *models.Users = new(models.Users)
 
 		//bind json from the request
@@ -153,18 +151,19 @@ func LmitBuy() gin.HandlerFunc {
 		}
 
 		//assigning new values for buy order
-		newOpenOrder.ID = primitive.NewObjectID()
+		newOpenOrder.OrderID = primitive.NewObjectID()
 		newOpenOrder.UserID = userID
-		newOpenOrder.Date = time.Now().Unix()
+		newOpenOrder.Status = "OPEN"
 		newOpenOrder.Pair = "BTC/USD"
 		newOpenOrder.Type = "LIMIT"
 		newOpenOrder.Side = "BUY"
 		newOpenOrder.Price = newBuyOrder.BTCprice
 		newOpenOrder.Amount = newBuyOrder.TotalUSD / newBuyOrder.BTCprice
 		newOpenOrder.Total = newBuyOrder.TotalUSD
+		newOpenOrder.OpenedAt = time.Now().Unix()
 
 		//updating open order collection
-		_, insertErr := openOrdersCollection.InsertOne(ctx, newOpenOrder)
+		_, insertErr := ordersCollection.InsertOne(ctx, newOpenOrder)
 		defer cancel()
 		if insertErr != nil {
 			log.Panic(insertErr)
@@ -195,7 +194,7 @@ func LimitSell() gin.HandlerFunc {
 		}
 
 		var newSellOrder *Limit = new(Limit)
-		var newOpenOrder *models.OpenOrders = new(models.OpenOrders)
+		var newOpenOrder *models.Orders = new(models.Orders)
 		var dbBalance *models.Users = new(models.Users)
 
 		//bind json from request
@@ -232,18 +231,19 @@ func LimitSell() gin.HandlerFunc {
 		}
 
 		//assigning new values for sell order
-		newOpenOrder.ID = primitive.NewObjectID()
+		newOpenOrder.OrderID = primitive.NewObjectID()
 		newOpenOrder.UserID = userID
-		newOpenOrder.Date = time.Now().Unix()
+		newOpenOrder.Status = "OPEN"
 		newOpenOrder.Pair = "BTC/USD"
 		newOpenOrder.Type = "LIMIT"
 		newOpenOrder.Side = "SELL"
 		newOpenOrder.Price = newSellOrder.BTCprice
 		newOpenOrder.Amount = newSellOrder.BTCamount
 		newOpenOrder.Total = newSellOrder.BTCamount * newSellOrder.BTCprice
+		newOpenOrder.OpenedAt = time.Now().Unix()
 
 		//updating open order collection
-		_, insertErr := openOrdersCollection.InsertOne(ctx, newOpenOrder)
+		_, insertErr := ordersCollection.InsertOne(ctx, newOpenOrder)
 		defer cancel()
 		if insertErr != nil {
 			log.Panic(insertErr)
@@ -322,19 +322,21 @@ func MarketBuy() gin.HandlerFunc {
 		}
 
 		//updating trade history
-		var newTrade *models.TradeHistory = new(models.TradeHistory)
+		var newTrade *models.Orders = new(models.Orders)
 
-		newTrade.ID = primitive.NewObjectID()
+		newTrade.OrderID = primitive.NewObjectID()
 		newTrade.UserID = userID
-		newTrade.Date = time.Now().Unix()
+		newTrade.Status = "EXECUTED"
 		newTrade.Pair = "BTC/USD"
 		newTrade.Type = "MARKET"
 		newTrade.Side = "BUY"
 		newTrade.Price = marketPrice
 		newTrade.Amount = totalUSD.TotalUSD / newTrade.Price
 		newTrade.Total = totalUSD.TotalUSD
+		newTrade.OpenedAt = time.Now().Unix()
+		newTrade.ExecutedAt = time.Now().Unix()
 
-		_, insertErr := tradeHistoryCollection.InsertOne(ctx, newTrade)
+		_, insertErr := ordersCollection.InsertOne(ctx, newTrade)
 		defer cancel()
 		if insertErr != nil {
 			log.Panic(insertErr)
@@ -401,19 +403,21 @@ func MarketSell() gin.HandlerFunc {
 		}
 
 		//updating trade history
-		var newTrade *models.TradeHistory = new(models.TradeHistory)
+		var newTrade *models.Orders = new(models.Orders)
 
-		newTrade.ID = primitive.NewObjectID()
+		newTrade.OrderID = primitive.NewObjectID()
 		newTrade.UserID = userID
-		newTrade.Date = time.Now().Unix()
+		newTrade.Status = "EXECUTED"
 		newTrade.Pair = "BTC/USD"
 		newTrade.Type = "MARKET"
 		newTrade.Side = "SELL"
 		newTrade.Price = marketPrice
 		newTrade.Amount = btcAmount.BTCamount
 		newTrade.Total = marketPrice * btcAmount.BTCamount
+		newTrade.OpenedAt = time.Now().Unix()
+		newTrade.ExecutedAt = time.Now().Unix()
 
-		_, insertErr := tradeHistoryCollection.InsertOne(ctx, newTrade)
+		_, insertErr := ordersCollection.InsertOne(ctx, newTrade)
 		defer cancel()
 		if insertErr != nil {
 			log.Panic(insertErr)
@@ -434,6 +438,10 @@ func CancelOrderById() gin.HandlerFunc {
 		if bindErr := c.ShouldBindJSON(&Cancel); bindErr != nil {
 			log.Panic(bindErr)
 		}
+
+		if Cancel.OrderID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Order ID"})
+		}
 		//string to objectID
 		orderID, idErr := primitive.ObjectIDFromHex(Cancel.OrderID)
 		if idErr != nil {
@@ -441,12 +449,14 @@ func CancelOrderById() gin.HandlerFunc {
 		}
 
 		//getting details from open order collection
-		var dbDetails *models.OpenOrders = new(models.OpenOrders)
+		var dbDetails *models.Orders = new(models.Orders)
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		dbErr := openOrdersCollection.FindOne(ctx, bson.M{"_id": orderID}).Decode(&dbDetails)
+		dbErr := ordersCollection.FindOne(ctx, bson.M{"_id": orderID, "status": "OPEN"}).Decode(&dbDetails)
 		defer cancel()
 		if dbErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": dbErr.Error()})
 			log.Panic(dbErr)
+			return
 		}
 
 		//getting user id from request context
@@ -477,11 +487,10 @@ func CancelOrderById() gin.HandlerFunc {
 			}
 		}
 
-		//deleting open order from collection
-		_, deleteErr := openOrdersCollection.DeleteOne(ctx, bson.M{"_id": orderID})
-		defer cancel()
-		if deleteErr != nil {
-			log.Panic(deleteErr)
+		//deleting order in orders collection
+		_, deErr := ordersCollection.DeleteOne(ctx, bson.M{"_id": orderID})
+		if dbErr != nil {
+			log.Panic(deErr)
 		}
 
 		c.JSON(http.StatusOK, gin.H{"success": fmt.Sprint("cancelled order id ", orderID.Hex())})

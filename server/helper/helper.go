@@ -15,7 +15,6 @@ import (
 	"ashwin.com/go-crypto-simulator/models"
 	"github.com/dgrijalva/jwt-go"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -124,8 +123,7 @@ func Timer() {
 	}
 }
 
-var openOrdersCollection *mongo.Collection = database.OpenCollection(database.Client, "open-orders")
-var tradeHistoryCollection *mongo.Collection = database.OpenCollection(database.Client, "trade-history")
+var ordersCollection *mongo.Collection = database.OpenCollection(database.Client, "orders")
 var userCollection *mongo.Collection = database.OpenCollection(database.Client, "users")
 
 func ExecuteOpenOrder() {
@@ -138,36 +136,38 @@ func ExecuteOpenOrder() {
 	//getting open orders details
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
-	filter := bson.M{"price": bson.M{"$gt": currentPrice}, "side": "BUY"}
-	cursor, dbErr := openOrdersCollection.Find(ctx, filter)
+	buyFilter := bson.M{"price": bson.M{"$gt": currentPrice, "$lt": 0.01 * currentPrice}, "status": "OPEN", "side": "BUY"}
+	cursor, dbErr := ordersCollection.Find(ctx, buyFilter)
 	defer cancel()
 	if dbErr != nil {
 		log.Panic(dbErr)
 	}
 
-	var dbBuyResult []models.OpenOrders
+	var dbBuyResult []models.Orders
 	if cursorErr := cursor.All(ctx, &dbBuyResult); cursorErr != nil {
 		log.Panic(cursorErr)
 	}
 
-	filter = bson.M{"price": bson.M{"$lt": currentPrice}, "side": "SELL"}
-	cursor, dbErr = openOrdersCollection.Find(ctx, filter)
+	sellFilter := bson.M{"price": bson.M{"$lt": currentPrice, "$gt": 0.01 * currentPrice}, "status": "OPEN", "side": "SELL"}
+	cursor, dbErr = ordersCollection.Find(ctx, sellFilter)
 	defer cancel()
 	if dbErr != nil {
 		log.Panic(dbErr)
 	}
 
-	var dbSellResult []models.OpenOrders
+	var dbSellResult []models.Orders
 	if cursorErr := cursor.All(ctx, &dbSellResult); cursorErr != nil {
 		log.Panic(cursorErr)
 	}
 
+	// if no orders to execute return from the function
 	if len(dbBuyResult) == 0 && len(dbSellResult) == 0 {
 		log.Println("No trade to execute...")
 		return
 	}
 	// updating user balance in user collection
-	//var newBuyHistory []interface{}
+	//updating buy orders
+
 	for _, val := range dbBuyResult {
 		_, dbErr := userCollection.UpdateOne(ctx, bson.M{"_id": val.UserID}, bson.M{
 			"$inc": bson.M{"bitcoin": val.Amount, "fiat": -val.Total},
@@ -177,36 +177,14 @@ func ExecuteOpenOrder() {
 			log.Panic(dbErr)
 		}
 
-		var newHistory *models.TradeHistory = new(models.TradeHistory)
+		log.Println(val.OrderID.Hex(), "executed BTC price at", val.Price, "for", val.Total, "USD")
 
-		newHistory.ID = primitive.NewObjectID()
-		newHistory.UserID = val.UserID
-		newHistory.Date = time.Now().Unix()
-		newHistory.Pair = val.Pair
-		newHistory.Type = val.Type
-		newHistory.Side = val.Side
-		newHistory.Price = val.Price
-		newHistory.Amount = val.Amount
-		newHistory.Total = val.Total
-
-		//newBuyHistory = append(newBuyHistory, newHistory)
-
-		_, dbErr = tradeHistoryCollection.InsertOne(ctx, newHistory)
-		defer cancel()
-		if dbErr != nil {
-			log.Panic(dbErr)
-		}
-
-		_, deErr := openOrdersCollection.DeleteOne(ctx, bson.M{"user_id": val.UserID})
-		defer cancel()
-		if deErr != nil {
-			log.Panic(deErr)
-		}
 	}
 
-	//var newSellHistory []interface{}
+	//updating sell orders
+
 	for _, val := range dbSellResult {
-		_, dbErr := userCollection.UpdateOne(ctx, bson.M{"_id": val.ID}, bson.M{
+		_, dbErr := userCollection.UpdateOne(ctx, bson.M{"_id": val.UserID}, bson.M{
 			"$inc": bson.M{"bitcoin": -val.Amount, "fiat": val.Total},
 		})
 		defer cancel()
@@ -214,57 +192,30 @@ func ExecuteOpenOrder() {
 			log.Panic(dbErr)
 		}
 
-		var newHistory *models.TradeHistory = new(models.TradeHistory)
+		log.Println(val.OrderID.Hex(), "executed BTC price at", val.Price, "for", val.Total, "USD")
 
-		newHistory.ID = primitive.NewObjectID()
-		newHistory.UserID = val.UserID
-		newHistory.Date = time.Now().Unix()
-		newHistory.Pair = val.Pair
-		newHistory.Type = val.Type
-		newHistory.Side = val.Side
-		newHistory.Price = val.Price
-		newHistory.Amount = val.Amount
-		newHistory.Total = val.Total
+	}
 
-		//newSellHistory = append(newSellHistory, newHistory)
-
-		_, dbErr = tradeHistoryCollection.InsertOne(ctx, newHistory)
+	//updating executed orders in order collection
+	if len(buyFilter) != 0 {
+		_, upErr := ordersCollection.UpdateMany(ctx, buyFilter, bson.M{"$set": bson.M{
+			"status":      "EXECUTED",
+			"executed_at": time.Now().Unix(),
+		}})
 		defer cancel()
-		if dbErr != nil {
-			log.Panic(dbErr)
-		}
-
-		_, deErr := openOrdersCollection.DeleteOne(ctx, bson.M{"user_id": val.UserID})
-		defer cancel()
-		if deErr != nil {
-			log.Panic(deErr)
+		if upErr != nil {
+			log.Panic(upErr)
 		}
 	}
 
-	// if len(dbBuyResult) != 0 {
-	// 	_, upErr := tradeHistoryCollection.InsertMany(ctx, newBuyHistory)
-	// 	defer cancel()
-	// 	if upErr != nil {
-	// 		log.Panic(upErr)
-	// 	}
-	// 	_, deErr := openOrdersCollection.DeleteMany(ctx, dbBuyResult)
-	// 	defer cancel()
-	// 	if deErr != nil {
-	// 		log.Panic(deErr)
-	// 	}
-	// }
-
-	// if len(dbSellResult) != 0 {
-	// 	_, upErr := tradeHistoryCollection.InsertMany(ctx, newSellHistory)
-	// 	defer cancel()
-	// 	if upErr != nil {
-	// 		log.Panic(upErr)
-	// 	}
-	// 	_, deErr := openOrdersCollection.DeleteMany(ctx, dbSellResult)
-	// 	defer cancel()
-	// 	if deErr != nil {
-	// 		log.Panic(deErr)
-	// 	}
-	// }
-
+	if len(sellFilter) != 0 {
+		_, upErr := ordersCollection.UpdateMany(ctx, sellFilter, bson.M{"$set": bson.M{
+			"status":      "EXECUTED",
+			"executed_at": time.Now().Unix(),
+		}})
+		defer cancel()
+		if upErr != nil {
+			log.Panic(upErr)
+		}
+	}
 }
