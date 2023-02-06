@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -32,6 +33,7 @@ func Signup() gin.HandlerFunc {
 			return
 		}
 
+		fmt.Println(newUser)
 		newUser.ID = primitive.NewObjectID()
 		newUser.Password = helper.HashPassword(newUser.Password)
 		newUser.Fiat = 10000.0
@@ -52,14 +54,14 @@ func Signup() gin.HandlerFunc {
 			return
 		}
 
-		insertedID, insertedErr := userCollection.InsertOne(ctx, newUser)
+		_, insertedErr := userCollection.InsertOne(ctx, newUser)
 		defer cancel()
 
 		if insertedErr != nil {
 			log.Panic(insertedErr)
 		}
 
-		c.JSON(http.StatusOK, insertedID)
+		c.JSON(http.StatusOK, gin.H{"success": "registration successful"})
 
 	}
 }

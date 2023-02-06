@@ -4,18 +4,19 @@ import (
 	"log"
 	"os"
 
-	"ashwin.com/go-crypto-simulator/helper"
 	"ashwin.com/go-crypto-simulator/routes"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
 
 func main() {
 	router := gin.Default()
+	router.Use(cors.Default())
 
 	routes.AuthRoute(router)
 	routes.UserRoute(router)
-	go helper.Timer()
+	//go helper.Timer()
 
 	if err := godotenv.Load(".env"); err != nil {
 		log.Panic(err)
