@@ -68,6 +68,7 @@ func Signup() gin.HandlerFunc {
 
 func Login() gin.HandlerFunc {
 	return func(c *gin.Context) {
+
 		var loginDetails *models.Users
 		var dbDetails *models.Users
 
@@ -84,7 +85,9 @@ func Login() gin.HandlerFunc {
 		dbErr := userCollection.FindOne(ctx, bson.M{"email": loginDetails.Email}, opts).Decode(&dbDetails)
 		defer cancel()
 		if dbErr != nil {
-			log.Panic(dbErr)
+			// log.Panic(dbErr)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Email"})
+			return
 		}
 
 		checkPassword := helper.VerifyPassword(loginDetails.Password, dbDetails.Password)

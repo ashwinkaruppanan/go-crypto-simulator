@@ -7,17 +7,51 @@ import LimitSell from './LimitSell';
 import { useState } from 'react';
 import MarketBuy from './MarketBuy';
 import MarketSell from './MarketSell';
+import {  useNavigate } from 'react-router-dom';
 
-const Trade = (props) => {
+import { useEffect } from 'react';
+
+const logout = (navigate) => {
+        fetch("http://localhost:8080/api/v1/logout/", {method : 'DELETE', credentials : 'include'})
+        .then(res => console.log(res))
+        .catch(err => console.log(err))
+        navigate('/login')
+}
+
+const Trade = () => {
 
     const [active, setActive] = useState("limit")
-    if(props.auth !== 'true'){
-        return (
-            <>
-            <h1 style={{color: "white", textAlign: 'center', marginTop:'45vh'}}>Please Login</h1>
-            </>
-        )
+    
+    const [balance , setBalance] = useState({
+        btc : 0,
+        usd : 0
+    })
+    const [refCount , setRefCount] = useState(0)
+    
+    let navigate = useNavigate();
+
+
+    useEffect(() => {
+
+        fetch("http://localhost:8080/api/v1/balance/", 
+        {method : 'GET' , credentials : 'include'})
+        .then(res => res.json())
+        .then(data => {
+            console.log(data);
+            setBalance(() => ({
+                btc : data.bitcoin,
+                usd : data.fiat
+            }))
+        })
+        .catch(err => console.log(err))
+    },[refCount]) 
+
+    function setRef() {
+        var newCount = refCount + 1
+        setRefCount(newCount)
     }
+
+    
 
   return (
     <>
@@ -29,9 +63,10 @@ const Trade = (props) => {
         </div>
         <div className="right">
             <h4>BALANCE </h4>
-            <h5>6754 $</h5>
-            <h5>0.00008 BTC</h5>
-            <Button className="login" variant="outlined" >Log Out</Button>
+            <h5>{balance.usd} $</h5>
+            <h5>{balance.btc} BTC</h5>
+            <Button className="login" variant="outlined" onClick={() => logout(navigate)}>Log Out</Button>
+            <button onClick={() => setRef()}>+</button>
         </div>
     </div>
     <div className="trade-view">

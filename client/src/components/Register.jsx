@@ -3,14 +3,17 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography'
 import { styled } from '@mui/material/styles';
+import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 
 
 const Register = () => {
   
   const [validation, setValidation ] = useState("")
+  const navigate = useNavigate();
   
   const registerUser = () => {
+
       let userName =  document.getElementById('name').value
       let email = document.getElementById('email').value
       let password = document.getElementById('password').value
@@ -32,18 +35,20 @@ const Register = () => {
         return
       }
 
+      // let res = ""
       axios.post("http://localhost:8080/api/v1/signup/", {
         "name" : userName,
         "email" : email,
         "password" : password
     })
-      .then(function (response) {
-        console.log(response);
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
+      .then(res => {
+        if(res.data.success === "registration successful"){
+          navigate("/login");
+      } })
+      .catch(err => setValidation(err.response.data.error))
+
       
+      // console.log(res.response.data.error);
       
   }
 
